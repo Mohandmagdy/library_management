@@ -1,0 +1,23 @@
+{
+  "name": "library_management",
+  "version": "1.0.0",
+  "description": "library management software system",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohandmagdy/library_management.git"
+  },
+  "author": "MohandMagdy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mohandmagdy/library_management/issues"
+  },
+  "homepage": "https://github.com/Mohandmagdy/library_management#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql": "^2.18.1"
+  }
+}

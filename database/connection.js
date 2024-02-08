@@ -7,10 +7,4 @@ const pool = mysql.createConnection({
     database:'library',
 })
 
-pool.query('select * from customers', (err, res, fields) => {
-    if(err){
-        return console.log(err);
-    }
-    return console.log(res);
-})
-
+module.exports = pool;

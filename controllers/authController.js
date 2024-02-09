@@ -32,9 +32,9 @@ const post_login = (req, res) => {
             } else{
                 bcrypt.compare(user.password, result[0].password)
                     .then(rs => {
-                        const token = create_token(result.customer_id);
+                        const token = create_token(result[0].customer_id);
                         res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                        res.json(result);
+                        res.json({'user': result[0]});
                     }).catch(err => {
                         console.log(err);
                     })
@@ -46,25 +46,51 @@ const post_login = (req, res) => {
 
 const post_signup = async (req, res) => {
     let user = req.body;
+
+    if(user.password.length < 6){
+        res.json({'errors':{password: 'password must be at least 6 characters'}});
+        return;
+    }
+
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, salt);
     const myQuery = `insert into customers (email, password, firstName, lastName, user_role, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', '${user.user_role}', ${user.age});`
+    const errors = {};
+    
     pool.query(myQuery, (err, result) => {
         if(err){
-            console.log(err)
+            if(err.sqlMessage.includes('Duplicate')){
+                errors.email = 'Email address is already in use';
+            }
+            res.json({'errors': errors});
         } else {
-            const token = create_token(result.customer_id);
-            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-            res.json({'case':'account created'});
+            const myQuery1 = `select customer_id from customers where email = '${user.email}'`;
+            pool.query(myQuery1, (err, result1) => {
+                if(err){
+                    console.log(err);
+                } else {
+                    const token = create_token(result1[0].customer_id);
+                    res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                    res.json({'user':result1[0]});
+                }
+            })
         }
     })
 }
 
+
+const logout = (req, res) => {
+    res.cookie('jwt', '', {
+        maxAge:1
+    });
+    res.redirect('/');
+}
 
 module.exports = {
     get_login,
     get_signup,
     post_login,
     post_signup,
+    logout,
 
 }

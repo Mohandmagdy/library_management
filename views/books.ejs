@@ -1,0 +1,16 @@
+<%- include('./partials/header.ejs') %>
+
+<h2>List of Books</h2>
+    <ul>
+        <% books.forEach(book => { %>
+            <li>
+                <h3><%= book.title %></h3>
+                <p>Description: <%= book.description %></p>
+                <p>remaining_pieces: <%= book.remaining_pieces %></p>
+                <p>author: <%= book.author_name %></p>
+                <a href="/books/<%= book.isbn %>">View Details</a>
+            </li>
+        <% }); %>
+    </ul>
+
+<%- include('./partials/footer.ejs') %>

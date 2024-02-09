@@ -1,0 +1,14 @@
+<%- include('./partials/header.ejs') %>
+
+<h2>Book Information</h2>
+<div>
+    <h3><%= book.title %></h3>
+    <p>Description: <%= book.description %></p>
+    <p>Pages: <%= book.pages %></p>
+    <p>Remaining Pieces: <%= book.remaining_pieces %></p>
+    <p>Author: <%= book.author_name %></p>
+    <p>Publisher: <%= book.publisher_name %></p>
+    <p>Publish Year: <%= book.publish_year %></p>
+</div>
+
+<%- include('./partials/footer.ejs') %>

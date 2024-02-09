@@ -1,3 +1,20 @@
-<h1>Hello mtf</h1>
+<%- include('./partials/header.ejs') %>
 
-<a href="/auth/login"></a>
+<form action="/items/searchbyname" method="post">
+    <input type="text" placeholder="Search by name" name="content">
+    <button>Search</button>
+</form>
+
+<form action="/items/searchbycategory" method="post">
+    <select name="category">
+        <option value="">category</option>
+        <option value="drink">Drink</option>
+        <option value="electronics">Electronics</option>
+        <option value="cosmetics">Cosmetics</option>
+        <option value="food">Food</option>
+        <option value="media">Media</option>
+    </select>
+    <button>Search</button>
+</form>
+
+<%- include('./partials/footer.ejs') %>

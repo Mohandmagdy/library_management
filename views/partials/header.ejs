@@ -1,28 +1,31 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>
-            Home Page
-        </title>
-        <link rel="stylesheet" href="/style.css">
-    </head>
-    <body>
-        <nav>
-            <h1><a href="/">Honda's Ecommerce</a></h1>
-            <ul>
+<head>
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav>
+        <h1><a href="/">Honda's Ecommerce</a></h1>
+        <ul>
             <% if(user) { %>
-            <li> <p> Welcome <%- user.name %> </p> </li>
-            <li> <a href="/auth/logout">Log out</a> </li>
-            <li> <a href="/books/all">Show books</a> </li>
-                <% if (user.role == 'customer') { %>
+                <li> <a href="/auth/logout">Log out</a> </li>
+                <li> <a href="/books/all">Show books</a> </li>
+                <% if (user.firstName) { %>
+                    <li> <p>Welcome <%- user.fisrtName+' '+user.lastName %></p> </li>
                     <li> <a href="/cart/<%- cart.id %>">Show cart</a> </li>
-                    <li> <a href="/order/<%- user.id %>">My orders</a> </li>
+                    <li> <a href="/order/<%- user.customer_id %>">My orders</a> </li>
                 <% } else { %>
-                    <li> <a href="/items/add">Add item</a> </li>
-                    <li> <a href="/items/store/<%-user.id%>">Offered items</a> </li>
+                    <li> <p>Welcome <%- user.name %></p> </li>
+                    <li> <a href="/books/add">Add a book</a> </li>
+                    <li> <a href="/books/published/<%- user.publisher_id %>">Published books</a> </li>
                 <% } %>
             <% } else { %>
-            <li> <a href="/auth/login">Log in</a> </li>
-            <li> <a href="/auth/signup">Sign up</a> </li>
+                <li> <a href="/auth/login">Log in</a> </li>
+                <li> <a href="/auth/signup/publisher">Sign up as Publisher</a> </li>
+                <li> <a href="/auth/signup/customer">Sign up as Customer</a> </li>
             <% } %>
-            </ul>
-          </nav>
+        </ul>
+    </nav>
+</body>
+</html>

@@ -11,16 +11,29 @@ const check_user = (req, res, next) => {
                 res.locals.user = null;
                 next();
             } else {
-                const myQuery = `select * from customers where customer_id = ${decodedToken.id}`
-                pool.query(myQuery, (err, result) => {
-                    if(err){
-                        res.locals.user = null;
-                        next();
-                    } else {
-                        res.locals.user = result[0];
-                        next();
-                    }
-                })
+                if(decodedToken.role == 'customer'){
+                    const myQuery = `select * from customers where customer_id = ${decodedToken.id}`
+                    pool.query(myQuery, (err, result) => {
+                        if(err){
+                            res.locals.user = null;
+                            next();
+                        } else {
+                            res.locals.user = result[0];
+                            next();
+                        }
+                    })
+                } else {
+                    const myQuery = `select * from publishers where publisher_id = ${decodedToken.id}`
+                    pool.query(myQuery, (err, result) => {
+                        if(err){
+                            res.locals.user = null;
+                            next();
+                        } else {
+                            res.locals.user = result[0];
+                            next();
+                        }
+                    })
+                }
             }
         });
     }

@@ -4,9 +4,10 @@ const controller = require('../controllers/authController');
 
 
 router.get('/login', controller.get_login);
-router.get('/signup', controller.get_signup);
+router.get('/signup/customer', controller.get_customer_signup);
+router.get('/signup/publisher', controller.get_publisher_signup);
 router.post('/login', controller.post_login);
-router.post('/signup', controller.post_signup);
+router.post('/signup', controller.post_customer_signup);
 router.get('/logout', controller.logout);
 
 module.exports = router;

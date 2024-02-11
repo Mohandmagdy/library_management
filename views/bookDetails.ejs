@@ -9,6 +9,13 @@
     <p>Author: <%= book.author_name %></p>
     <p>Publisher: <%= book.publisher_name %></p>
     <p>Publish Year: <%= book.publish_year %></p>
+
+    <% if (book.remaining_pieces > 0) { %>
+        <form action="/cart/add" method="POST">
+            <input type="hidden" name="book_id" value="<%= book._id %>">
+            <button type="submit">Add to Cart</button>
+        </form>
+    <% } %>
 </div>
 
 <%- include('./partials/footer.ejs') %>

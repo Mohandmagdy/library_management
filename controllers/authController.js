@@ -33,16 +33,9 @@ const add_customer = (user, res) => {
             }
             res.json({'errors': errors});
         } else {
-            const myQuery1 = `select customer_id from customers where email = '${user.email}'`;
-            pool.query(myQuery1, (err, result1) => {
-                if(err){
-                    console.log(err);
-                } else {
-                    const token = create_token(result1[0].customer_id, 'customer');
-                    res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                    res.json({'user':result1[0]});
-                }
-            })
+            const token = create_token(result.insertId, 'customer');
+            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+            res.json({'case':'success'});
         }
     })
 }
@@ -59,16 +52,9 @@ const add_publisher = (user, res) => {
             }
             res.json({'errors': errors});
         } else {
-            const myQuery1 = `select publisher_id from publishers where email = '${user.email}'`;
-            pool.query(myQuery1, (err, result1) => {
-                if(err){
-                    console.log(err);
-                } else {
-                    const token = create_token(result1[0].publisher_id, 'publisher');
-                    res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                    res.json({'user':result1[0]});
-                }
-            })
+            const token = create_token(result.insertId, 'publisher');
+            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+            res.json({'case':'success'});
         }
     })
 }

@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const check_user = (req, res, next) => {
     const token = req.cookies.jwt;
-
     if(token){
         jwt.verify(token, 'increaseupto1', async(err, decodedToken) => {
             if(err){

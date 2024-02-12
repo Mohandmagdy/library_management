@@ -22,39 +22,149 @@ const check_hash_password = async (password) => {
 }
 
 const add_customer = (user, res) => {
-    const myQuery = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
-    const errors = {};
-    
-    pool.query(myQuery, (err, result) => {
-        if(err){
-            console.log(err);
-            if(err.sqlMessage.includes('Duplicate')){
-                errors.email = 'Email address is already in use';
-            }
-            res.json({'errors': errors});
-        } else {
-            const token = create_token(result.insertId, 'customer');
-            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-            res.json({'case':'success'});
+
+    pool.beginTransaction((err) => {
+        if (err){
+            pool.rollback(() => {
+                throw err;
+            })
         }
+        const testQuery = `select email from publishers where email = '${user.email}'`;
+        let errors = {'email':''};
+        pool.query(testQuery, (err, result1) => {
+            if (err){
+                pool.rollback(() => {
+                    throw err;
+                })
+            }
+            if(result1[0]) {
+                pool.rollback(() => {
+                    errors.email = 'Email address is already in use';
+                    res.json({'errors': errors});
+                })
+            } else {
+                const myQuery = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
+    
+                pool.query(myQuery, (err, result2) => {
+                    if(err){
+                        pool.rollback(() => {
+                            if(err.sqlMessage.includes('Duplicate')){
+                                errors.email = 'Email address is already in use';
+                            }
+                            res.json({'errors': errors});
+                        })
+                    } else {
+                        pool.commit((err) => {
+                            if (err) {
+                                pool.rollback(() => {
+                                    throw err;
+                                });
+                            }
+                            const token = create_token(result2.insertId, 'customer');
+                            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                            res.json({'case':'success'});
+                            pool.end();
+                        });
+                    }
+                })
+            }
+        })
     })
 }
 
 const add_publisher = (user, res) => {
-    const myQuery = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
-    const errors = {};
+
+    pool.beginTransaction((err) => {
+        if (err){
+            pool.rollback(() => {
+                throw err;
+            })
+        }
+        const testQuery = `select email from customers where email = '${user.email}'`;
+        let errors = {'email':''};
+        pool.query(testQuery, (err, result1) => {
+            if (err){
+                pool.rollback(() => {
+                    throw err;
+                })
+            }
+            if(result1[0]) {
+                pool.rollback(() => {
+                    errors.email = 'Email address is already in use';
+                    res.json({'errors': errors});
+                })
+            } else {
+                const myQuery = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
     
+                pool.query(myQuery, (err, result2) => {
+                    if(err){
+                        pool.rollback(() => {
+                            if(err.sqlMessage.includes('Duplicate')){
+                                errors.email = 'Email address is already in use';
+                            }
+                            res.json({'errors': errors});
+                        })
+                    } else {
+                        pool.commit((err) => {
+                            if (err) {
+                                pool.rollback(() => {
+                                    throw err;
+                                });
+                            }
+                            const token = create_token(result2.insertId, 'publisher');
+                            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                            res.json({'case':'success'});
+                            pool.end();
+                        });
+                    }
+                })
+            }
+        })
+    })
+}
+
+const customer_login = (user, res) => {
+    const myQuery = `select * from customers where email='${user.email}';`;
     pool.query(myQuery, (err, result) => {
         if(err){
             console.log(err);
-            if(err.sqlMessage.includes('Duplicate')){
-                errors.email = 'Email address is already in use';
+        } else{
+            if(!result[0]){
+                res.json({'error': 'invalid email or password'});
+            } else{
+                bcrypt.compare(user.password, result[0].password)
+                    .then(rs => {
+                        const token = create_token(result[0].customer_id, 'customer');
+                        res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                        res.json({'user': result[0]});
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                
             }
-            res.json({'errors': errors});
-        } else {
-            const token = create_token(result.insertId, 'publisher');
-            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-            res.json({'case':'success'});
+        }
+    })
+}
+
+const publisher_login = (user, res) => {
+    const myQuery = `select * from publishers where email='${user.email}';`;
+    pool.query(myQuery, (err, result) => {
+        if(err){
+            console.log(err);
+        } else{
+            if(!result[0]){
+                res.json({'error': 'invalid email or password'});
+            } else{
+                bcrypt.compare(user.password, result[0].password)
+                    .then(rs => {
+                        const token = create_token(result[0].publisher_id, 'publisher');
+                        res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                        res.json({'user': result[0]});
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                
+            }
         }
     })
 }
@@ -73,29 +183,15 @@ const get_publisher_signup = (req, res) => {
 
 const post_login = (req, res) => {
     const user = req.body;
-    const myQuery = `select * from customers where email='${user.email}';`;
-    pool.query(myQuery, (err, result, fields) => {
-        if(err){
-            console.log(err);
-        } else{
-            if(!result[0]){
-                res.json({'error': 'invalid email or password'});
-            } else{
-                bcrypt.compare(user.password, result[0].password)
-                    .then(rs => {
-                        const token = create_token(result[0].customer_id);
-                        res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                        res.json({'user': result[0]});
-                    }).catch(err => {
-                        console.log(err);
-                    })
-                
-            }
-        }
-    })
+    
+    if(user.role == 'customer'){
+        customer_login(user, res);
+    } else {
+        publisher_login(user, res);
+    }
 }
 
-const post_customer_signup = async (req, res) => {
+const post_signup = async (req, res) => {
     let user = req.body;
 
     user.password = await check_hash_password(user.password);
@@ -125,7 +221,7 @@ module.exports = {
     get_customer_signup,
     get_publisher_signup,
     post_login,
-    post_customer_signup,
+    post_signup,
     logout,
 
 }

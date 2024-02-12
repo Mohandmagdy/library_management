@@ -83,11 +83,60 @@ const add_book = (req, res) => {
     })
 }
 
+const filter_category = (category, res) => {
+    const myQuery = `select * from books as b inner join book_category as bc on b.isbn = bc.isbn and category = '${category}'`
+    pool.query(myQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('books', {books: result});
+        }
+    })
+}
+
+const filter_publisher = (publisher, res) => {
+    const myQuery = `select * from books as b inner join book_category as bc on b.isbn = bc.isbn and category = '${category}'`
+    pool.query(myQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('books', {books: result});
+        }
+    })
+}
+
+const filter_author = (author, res) => {
+    const myQuery = `select * from books as b inner join book_category as bc on b.isbn = bc.isbn and category = '${category}'`
+    pool.query(myQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('books', {books: result});
+        }
+    })
+}
+
+const filter = (req, res) => {
+    const type = req.params.type;
+
+    if(type == 'author'){
+        filter_author(req.body.author, res);
+    } else if (type == 'publisher') {
+        filter_publisher(req.body.publisher, res);
+    } else {
+        filter_category(req.body.category, res);
+    }
+}
+
+
+
+
 
 module.exports = {
     show_books,
     show_book,
     add_page,
     add_book,
+    filter,
 
 }

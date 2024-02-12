@@ -1,16 +1,52 @@
 <%- include('./partials/header.ejs') %>
 
 <h2>List of Books</h2>
-    <ul>
-        <% books.forEach(book => { %>
-            <li>
-                <h3><%= book.title %></h3>
-                <p>Description: <%= book.description %></p>
-                <p>remaining copies: <%= book.remaining_copies %></p>
-                <p>author: <%= book.author_name %></p>
-                <a href="/books/<%= book.isbn %>">View Details</a>
-            </li>
-        <% }); %>
-    </ul>
+
+<!-- Filtering options -->
+<form action="/books/filter" method="GET">
+    <label for="filterCategory">Filter by Category:</label>
+    <select name="category" id="filterCategory">
+        <!-- Static options -->
+        <option value="fiction">Fiction</option>
+        <option value="non-fiction">Non-Fiction</option>
+        <option value="science-fiction">Science Fiction</option>
+        <!-- Add more options as needed -->
+    </select>
+    <button type="submit">Apply Category Filter</button>
+</form>
+
+<form action="/books/filter" method="GET">
+    <label for="filterAuthor">Filter by Author:</label>
+    <select name="author" id="filterAuthor">
+        <!-- Static options -->
+        <option value="john-doe">John Doe</option>
+        <option value="jane-doe">Jane Doe</option>
+        <!-- Add more options as needed -->
+    </select>
+    <button type="submit">Apply Author Filter</button>
+</form>
+
+<form action="/books/filter" method="GET">
+    <label for="filterPublisher">Filter by Publisher:</label>
+    <select name="publisher" id="filterPublisher">
+        <!-- Static options -->
+        <option value="publisher-a">Publisher A</option>
+        <option value="publisher-b">Publisher B</option>
+        <!-- Add more options as needed -->
+    </select>
+    <button type="submit">Apply Publisher Filter</button>
+</form>
+
+<ul>
+    <% books.forEach(book => { %>
+        <li>
+            <h3><%= book.title %></h3>
+            <p>Description: <%= book.description %></p>
+            <p>Remaining copies: <%= book.remaining_copies %></p>
+            <p>Author: <%= book.author_name %></p>
+            <a href="/books/<%= book.isbn %>">View Details</a>
+        </li>
+    <% }); %>
+</ul>
 
 <%- include('./partials/footer.ejs') %>

@@ -44,7 +44,8 @@
                 emailError.textContent = data.errors.email;
                 passwordError.textContent = data.errors.password;
             }
-            if (data.case = 'success') {
+            if (data.case == 'success') {
+                console.log('zby');
                 location.assign('/');
             }
         } catch (err) {

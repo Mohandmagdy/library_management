@@ -4,6 +4,7 @@ const controller = require('../controllers/booksController');
 
 router.get('/all', controller.show_books);
 router.get('/add', controller.add_page);
+router.get('/filter/:type', controller.filter);
 router.post('/add/:id', controller.add_book);
 router.get('/:id', controller.show_book);
 

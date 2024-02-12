@@ -1,43 +1,53 @@
 <%- include('./partials/header.ejs') %>
 
-<form>
+<form id="loginForm">
     <label for="email">Email address</label>
     <input type="text" name="email" required />
     <label for="password">Password</label>
     <input type="password" name="password" required />
     <div class="error"></div>
-    <button>Log in</button>
+    <button id="publisherLogin">Login as Publisher</button>
+    <button id="customerLogin">Login as Customer</button>
 </form>
 
 <script>
     const error = document.querySelector('.error');
+    const form = document.getElementById('loginForm');
+    const publisherButton = document.getElementById('publisherLogin');
+    const customerButton = document.getElementById('customerLogin');
 
-    const form = document.querySelector('form');
-
-    form.addEventListener('submit', async (event) => {
+    publisherButton.addEventListener('click', (event) => {
         event.preventDefault();
+        submitLoginForm('publisher');
+    });
 
-        const myform = new FormData(event.target);
-        const values = Object.fromEntries(myform.entries());
+    customerButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        submitLoginForm('customer');
+    });
 
-        try{
-            const res = await fetch('/auth/login', { 
-            method: 'POST', 
-            body: JSON.stringify(values),
-            headers: {'Content-Type': 'application/json'}
+    async function submitLoginForm(role) {
+        const formData = new FormData(form);
+        const values = Object.fromEntries(formData.entries());
+        values.role = role; // Add the role property
+
+        try {
+            const res = await fetch('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify(values),
+                headers: { 'Content-Type': 'application/json' }
             });
             const data = await res.json();
-            if(data.error){
+            if (data.error) {
                 error.textContent = data.error;
             }
             if (data.user) {
                 location.assign('/');
             }
-        }
-        catch(err){
+        } catch (err) {
             console.log(err);
         }
-    });
+    }
 
 </script>
 

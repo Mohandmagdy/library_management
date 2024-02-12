@@ -17,8 +17,8 @@
     <label for="publish_year">Publish Year:</label><br>
     <input type="number" id="publish_year" name="publish_year" required><br>
 
-    <label for="author">Author:</label><br>
-    <select id="author" name="author" required>
+    <label for="author">Authors:</label><br>
+    <select id="author" name="author" multiple size="5" required>
         <% authors.forEach(function(author) { %>
             <option value="<%= author.author_id %>"><%= author.name %></option>
         <% }) %>
@@ -26,6 +26,5 @@
 
     <input type="submit" value="Submit">
 </form>
-
 
 <%- include('./partials/footer.ejs') %>

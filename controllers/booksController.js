@@ -40,6 +40,8 @@ const add_page = (req, res) => {
 const add_book = (req, res) => {
     const book = req.body;
     const publisher_id = req.params.id;
+    const authors = book.authors;
+    const categories = book.categories;
 
     let isbn;
     const myQuery1 = `insert into books (title, description, pieces, publisher_id, pages, publish_year) values ('${book.title}', '${book.description}', '${book.pieces}', '${publisher_id}', '${book.pages}', '${book.publish_year}')`;
@@ -59,26 +61,43 @@ const add_book = (req, res) => {
             }
             isbn = result.insertId;
 
-            const myQuery2 = `insert into book_author (isbn, author_id) values ('${isbn}', '${book.author}')`
-
-            pool.query(myQuery2, (err) => {
-                if (err) {
-                    pool.rollback(() => {
-                        throw err;
-                    });
-                }
-                pool.commit((err) => {
+            authors.forEach(authorId => {
+                const sql = 'INSERT INTO book_author (isbn, author_id) VALUES (?, ?)';
+                const values = [isbn, authorId];
+        
+                pool.query(sql, values, (err, result) => {
                     if (err) {
                         pool.rollback(() => {
+                            console.error('Error inserting record into book_author:', err);
                             throw err;
                         });
                     }
-    
-                    res.redirect('/');
-    
-                    pool.end();
                 });
-            })
+            });
+
+            categories.forEach(categoryName => {
+                const sql = 'INSERT INTO book_category (ISBN, category) VALUES (?, ?)';
+                const values = [isbn, categoryName];
+    
+                pool.query(sql, values, (err, result) => {
+                    if (err) {
+                        pool.rollback(() => {
+                            console.error('Error inserting record into book_category:', err);
+                            throw err;
+                        });
+                    }
+                });
+            });
+
+            pool.commit((err) => {
+                if (err) {
+                    pool.rollback(() => {
+                        console.error('Error committing transaction:', err);
+                        throw err;
+                    });
+                }
+                res.redirect('/');
+            });
         });
     })
 }

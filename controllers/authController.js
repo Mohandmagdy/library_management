@@ -63,7 +63,6 @@ const add_customer = (user, res) => {
                             const token = create_token(result2.insertId, 'customer');
                             res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
                             res.json({'case':'success'});
-                            pool.end();
                         });
                     }
                 })
@@ -114,7 +113,6 @@ const add_publisher = (user, res) => {
                             const token = create_token(result2.insertId, 'publisher');
                             res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
                             res.json({'case':'success'});
-                            pool.end();
                         });
                     }
                 })

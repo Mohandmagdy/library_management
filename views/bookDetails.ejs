@@ -27,9 +27,10 @@
     <p>Publisher: <%= book.publisher_name %></p>
     <p>Pages: <%= book.pages %></p>
     <p>Publish Year: <%= book.publish_year %></p>
+    
 
     <% if (book.pieces > 0) { %>
-        <form action="/cart/add/<%-book.isbn%>" method="post">
+        <form id="addToCartForm" action="/cart/add/<%- user.customer_id %>/<%-book.isbn%>" method="post">
             <input type="hidden" name="bookId" value="<%= book.id %>">
             <button type="submit">Add to Cart</button>
         </form>
@@ -39,3 +40,31 @@
 </li>
 
 <%- include('./partials/footer.ejs') %>
+
+
+<script>
+    document.getElementById('addToCartForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const res = await fetch(form.action, {
+            method: form.method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        const data = await res.json();
+        console.log(data);
+        if(data.error){
+            alert(data.error);
+        } else {
+            alert('The book has been added to your cart successfully');
+            location.assign('/');
+        }
+        
+    });
+    
+</script>

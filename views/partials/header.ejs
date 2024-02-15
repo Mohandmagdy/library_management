@@ -13,6 +13,7 @@
                 <% if (user.firstName) { %>
                     <li> <p>Welcome <%- user.firstName+' '+user.lastName %></p> </li>
                     <li> <a href="/order/<%- user.customer_id %>">My orders</a> </li>
+                    <li> <a href="/cart/<%- user.customer_id %>">My cart</a> </li>
                     <li> <a href="/books/all">Show books</a> </li>
                 <% } else { %>
                     <li> <p>Welcome <%- user.name %></p> </li>

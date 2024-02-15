@@ -63,7 +63,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;<%= book.categories.trim() %><br>
                 <% } %>
             </p>
-            <a href="/books/<%-user.customer_id%>/<%- book.isbn %>">View Details</a>
+            <a href="/books/<%- book.isbn %>">View Details</a>
         </li>
     <% }); %>
 </ul>

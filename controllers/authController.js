@@ -87,6 +87,10 @@ const check_hash_password = async (password) => {
 }
 
 const add_customer = (user, res) => {
+    if(!validateEmail(user.email)){
+        res.json({'errors': {'email': 'wrong email address'}});
+        return;
+    }
 
     pool.beginTransaction((err) => {
         if (err){
@@ -138,6 +142,10 @@ const add_customer = (user, res) => {
 }
 
 const add_publisher = (user, res) => {
+    if(!validateEmail(user.email)){
+        res.json({'errors': {'email': 'wrong email address'}});
+        return;
+    }
 
     pool.beginTransaction((err) => {
         if (err){

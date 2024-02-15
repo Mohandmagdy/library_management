@@ -21,29 +21,102 @@ const add_book = (req, res) => {
             }
             if(result.length > 0){
                 pool.rollback(() => {
-                    res
+                    res.json({'error': 'You already have this book in your cart'});
+                    return;
+                })
+            } else {
+                const myQuery2 = `insert into cart (isbn, customer_id) values (${isbn}, ${customer_id})`
+                pool.query(myQuery2, (err, result) => {
+                    if(err) {
+                        console.log(err)
+                    } else {
+                        const myQuery3 = `update books set pieces = pieces-1 where isbn = ${isbn}`;
+                        pool.query(myQuery3, (err, result) => {
+                            if(err) {
+                                pool.rollback(() => {
+                                    throw err;
+                                })
+                            } else {
+                                pool.commit(err => {
+                                    if(err) {
+                                        pool.rollback(() => {
+                                            throw err;
+                                        })
+                                    } else {
+                                        res.json({'case':'success'});
+                                    }
+                                })
+                            }
+                        })
+                    }
                 })
             }
-
-
-
-            const myQuery2 = 'insert into cart (isbn, customer_id) values (?, ?);'
-            const values2 = [isbn, customer_id];
-            pool.query(myQuery2, values2, (err, result) => {
-                if(err) {
-                    console.log(err)
-                } else {
-
-                }
-            })
         })
     })
 
+}
+
+const show_cart = (req, res) => {
+    const id = req.params.id;
+
+    const myQuery = `select b.title, c.isbn, c.cart_id
+            from cart as c
+            inner join books as b on b.isbn = c.isbn
+            where customer_id = ${id};`;
+    pool.query(myQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('cart', {books: result});
+        }
+    })
+}
+
+const delete_book = (req, res) => {
+    const {isbn, cart_id} = req.body;
+
+    pool.beginTransaction(err => {
+        if (err) {
+            pool.rollback(() => {
+                throw err;
+            })
+        } else {
+            const myQuery2 = `delete from cart where cart_id = '${cart_id}'`;
+            pool.query(myQuery2, (err, result1) => {
+                if (err) {
+                    pool.rollback(() => {
+                        throw err;
+                    })
+                } else {
+                    const myQuery2 = `update books set pieces = pieces + 1 where isbn = '${isbn}'`;
+                    pool.query(myQuery2, (err, result2) => {
+                        if (err) {
+                            pool.rollback(() => {
+                                throw err;
+                            })
+                        } else {
+                            pool.commit(err => {
+                                if(err) {
+                                    pool.rollback(() => {
+                                        throw err;
+                                    })
+                                } else {
+                                    res.redirect('/');
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    })
 }
 
 
 
 module.exports = {
     add_book,
-
+    show_cart,
+    delete_book,
+    
 }

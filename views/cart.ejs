@@ -1,0 +1,19 @@
+<%- include('./partials/header.ejs') %>
+
+<!-- Display each book in the cart -->
+<ul>
+  <% books.forEach(book => { %>
+    <li>
+      <h3><%= book.title %></h3>
+
+      <form action="/cart/delete" method="post">
+        <input type="hidden" name="cart_id" value="<%= book.cart_id %>">
+        <input type="hidden" name="isbn" value="<%= book.isbn %>">
+        <button type="submit">Remove from Cart</button>
+      </form>
+      
+    </li>
+  <% }); %>
+</ul>
+
+<%- include('./partials/footer.ejs') %>

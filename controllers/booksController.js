@@ -15,13 +15,13 @@ const show_books = (req, res) => {
 const show_book = (req, res) => {
     const id = req.params.id;
 
-    const myQuery = `SELECT b.ISBN, b.title,  b.description,  b.pieces, p.name AS publisher_name, b.pages, b.publish_year, GROUP_CONCAT(DISTINCT CONCAT(a.firstName, ' ', a.lastName)) AS authors, GROUP_CONCAT(DISTINCT bc.category) AS categories
+    const myQuery = `SELECT b.isbn, b.title,  b.description,  b.pieces, p.name AS publisher_name, b.pages, b.publish_year, GROUP_CONCAT(DISTINCT CONCAT(a.firstName, ' ', a.lastName)) AS authors, GROUP_CONCAT(DISTINCT bc.category) AS categories
             FROM books AS b
-            INNER JOIN book_author AS ba ON b.ISBN = ba.ISBN
+            INNER JOIN book_author AS ba ON b.isbn = ba.isbn and b.isbn = ${id}
             INNER JOIN authors AS a ON ba.author_id = a.author_id
-            INNER JOIN book_category AS bc ON b.ISBN = bc.ISBN
+            INNER JOIN book_category AS bc ON b.isbn = bc.isbn 
             INNER JOIN publishers AS p ON b.publisher_id = p.publisher_id
-            GROUP BY b.ISBN, b.title, b.description, b.pieces, b.publisher_id, p.name, b.pages, b.publish_year;`
+            GROUP BY b.isbn, b.title, b.description, b.pieces, b.publisher_id, p.name, b.pages, b.publish_year;`
     pool.query(myQuery, (err, result) => {
         if(err){
             console.log(err);

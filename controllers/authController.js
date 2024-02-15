@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const pool = require('../database/connection');
 const jwt = require('jsonwebtoken');
+const {isEmail} = require('validator');
+const nodemailer = require('nodemailer');
 
 const maxAge = 3 * 24 * 60 * 60;
 
@@ -10,6 +12,69 @@ const create_token = (id, role) => {
         expiresIn: maxAge
     });
     return token;
+}
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.office365.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'mohandmagdii45@gmail.com', 
+      pass: 'hmadalmaza10' 
+    }
+});
+
+const generateOTP = () => {
+    var digits = '0123456789';
+    let OTP = '';
+    for (let i = 0; i < 6; i++) {
+        OTP += digits[Math.floor(Math.random() * 10)];
+    }
+    return OTP;
+}
+
+const sendOtp = (email) => {
+    const otp = generateOTP();
+
+    const myQuery = 'insert into otp (password) values (?);'
+    pool.query(myQuery, [otp], (err, result) => {
+        if(err) {
+            console.log(err);
+            return;
+        }
+    })
+
+    const mailOptions = {
+        from: 'mohandmagdii45@gmail.com',
+        to: email,
+        subject: 'Email verification',
+        text: `Hello, Please use this OTP to verify your email ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          return console.error('Error occurred while sending email:', err);
+        }
+    });
+}
+
+const validateEmail = (email) => {
+    if(isEmail(email))
+        return true;
+    return false;
+}
+
+const check_otp = (req, res) => {
+    const {otp} = req.body;
+
+    const myQuery = `select password from otp where password = ${otp}`;
+    pool.query(myQuery, (err, result) => {
+        if(err || result.length == 0){
+            res.json({'case':'wrong'});
+        } else{
+            res.json({'case':'success'});
+        }
+    })
 }
 
 const check_hash_password = async (password) => {
@@ -60,9 +125,10 @@ const add_customer = (user, res) => {
                                     throw err;
                                 });
                             }
+                            sendOtp(user.email, result2.insertId);
                             const token = create_token(result2.insertId, 'customer');
                             res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                            res.json({'case':'success'});
+                            res.json({'case':'otp'});
                         });
                     }
                 })
@@ -80,7 +146,7 @@ const add_publisher = (user, res) => {
             })
         }
         const testQuery = `select email from customers where email = '${user.email}'`;
-        let errors = {'email':''};
+        let errors = {'email':'', 'password':'', 'creationYear': ''};
         pool.query(testQuery, (err, result1) => {
             if (err){
                 pool.rollback(() => {
@@ -100,8 +166,12 @@ const add_publisher = (user, res) => {
                         pool.rollback(() => {
                             if(err.sqlMessage.includes('Duplicate')){
                                 errors.email = 'Email address is already in use';
+                                res.json({'errors': errors});
                             }
-                            res.json({'errors': errors});
+                            if(err.sqlMessage.includes('Out of range')) {
+                                errors.creationYear = 'wrong year';
+                                res.json({'errors': errors});
+                            }
                         })
                     } else {
                         pool.commit((err) => {
@@ -110,9 +180,10 @@ const add_publisher = (user, res) => {
                                     throw err;
                                 });
                             }
+                            sendOtp(user.email, result2.insertId);
                             const token = create_token(result2.insertId, 'publisher');
                             res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                            res.json({'case':'success'});
+                            res.json({'case':'otp'});
                         });
                     }
                 })
@@ -191,6 +262,10 @@ const post_login = (req, res) => {
 
 const post_signup = async (req, res) => {
     let user = req.body;
+    if(!validateEmail) {
+        res.json({'errors':{email: 'Wrong email address'}});
+        return;
+    }
 
     user.password = await check_hash_password(user.password);
     
@@ -204,6 +279,7 @@ const post_signup = async (req, res) => {
     } else {
         add_publisher(user, res);
     }
+
 }
 
 
@@ -221,5 +297,6 @@ module.exports = {
     post_login,
     post_signup,
     logout,
+    check_otp,
 
 }

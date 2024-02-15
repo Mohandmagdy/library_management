@@ -27,7 +27,15 @@
     <p>Publisher: <%= book.publisher_name %></p>
     <p>Pages: <%= book.pages %></p>
     <p>Publish Year: <%= book.publish_year %></p>
-</li>
 
+    <% if (book.pieces > 0) { %>
+        <form action="/cart/add/<%-book.isbn%>" method="post">
+            <input type="hidden" name="bookId" value="<%= book.id %>">
+            <button type="submit">Add to Cart</button>
+        </form>
+    <% } else { %>
+        <p>Sorry, this book is currently out of stock.</p>
+    <% } %>
+</li>
 
 <%- include('./partials/footer.ejs') %>

@@ -13,8 +13,7 @@
     <input type="text" name="name" required />
 
     <label for="creationYear">Creation Year</label>
-    <input type="number" name="creationYear" required />
-    <div class="creation-year error"></div> <!-- Add this div for errors -->
+    <input type="number" name="creationYear" id="yearInput" min="1000" max="9999" required />
 
     <button id="signupButton">Sign up</button>
 </form>
@@ -29,17 +28,26 @@
 <script>
     const emailError = document.querySelector('.email.error');
     const passwordError = document.querySelector('.password.error');
-    const creationYearError = document.querySelector('.creation-year.error'); // New error div
     const otpError = document.getElementById('otpError');
     const signupForm = document.getElementById('signupForm');
     const otpSection = document.getElementById('otpSection');
+
+    const yearInput = document.getElementById('yearInput');
+    yearInput.addEventListener('input', function() {
+        const yearValue = parseInt(yearInput.value);
+        if (isNaN(yearValue) || yearValue < 1000 || yearValue > 9999) {
+            yearInput.setCustomValidity('Year must be a four-digit number between 1000 and 9999.');
+        } else {
+            yearInput.setCustomValidity('');
+        }
+    });
+
 
     signupForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         emailError.textContent = '';
         passwordError.textContent = '';
-        creationYearError.textContent = ''; // Clear creation year error
         otpError.style.display = 'none';
 
         const formData = new FormData(signupForm);
@@ -56,10 +64,11 @@
                 console.log(data.errors);
                 emailError.textContent = data.errors.email;
                 passwordError.textContent = data.errors.password;
-                creationYearError.textContent = data.errors.creationYear; // Update creation year error
             } else if (data.case === 'otp') {
                 otpSection.style.display = 'block';
                 signupForm.style.display = 'none';
+                // Store the form data for later use
+                otpSection.dataset.formData = JSON.stringify(values);
             } else if (data.case === 'success') {
                 location.assign('/');
             }
@@ -72,11 +81,15 @@
 
     verifyOTPButton.addEventListener('click', async () => {
         const otpInput = document.getElementById('otpInput').value;
+        const formData = JSON.parse(otpSection.dataset.formData);
 
         try {
             const response = await fetch('/auth/otp', {
                 method: 'POST',
-                body: JSON.stringify({ otp: otpInput }),
+                body: JSON.stringify({
+                    otp: otpInput,
+                    user: formData
+                }),
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();

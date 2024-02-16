@@ -59,6 +59,7 @@
             } else if (data.case === 'otp') {
                 otpSection.style.display = 'block';
                 signupForm.style.display = 'none';
+                otpSection.dataset.formData = JSON.stringify(values);
             } else if (data.case === 'success') {
                 location.assign('/');
             }
@@ -71,11 +72,15 @@
 
     verifyOTPButton.addEventListener('click', async () => {
         const otpInput = document.getElementById('otpInput').value;
+        const formData = JSON.parse(otpSection.dataset.formData);
 
         try {
             const response = await fetch('/auth/otp', {
                 method: 'POST',
-                body: JSON.stringify({ otp: otpInput }),
+                body: JSON.stringify({
+                    otp: otpInput,
+                    user: formData
+                }),
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();

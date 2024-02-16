@@ -36,8 +36,8 @@ const generateOTP = () => {
 const sendOtp = (email) => {
     const otp = generateOTP();
 
-    const myQuery = 'insert into otp (password) values (?);'
-    pool.query(myQuery, [otp], (err, result) => {
+    const myQuery = 'insert into otp (otp_code, email) values (?, ?);'
+    pool.query(myQuery, [otp, email], (err, result) => {
         if(err) {
             console.log(err);
             return;
@@ -64,139 +64,120 @@ const validateEmail = (email) => {
     return false;
 }
 
-const check_otp = (req, res) => {
-    const {otp} = req.body;
+const check_otp = async (req, res) => {
+    const {otp, user} = req.body;
 
-    const myQuery = `select password from otp where password = ${otp}`;
+    
+    user.password = await hash_password(user.password);
+    
+    if(user.password == 'wrong'){
+        res.json({'errors':{password: 'password must be at least 6 characters'}});
+        return;
+    }
+
+    const publisher = () => {
+        const myQuery1 = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
+    
+            pool.query(myQuery1, (err, result1) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    const token = create_token(result1.insertId, 'publisher');
+                    res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                    res.json({'case':'success'});
+                }
+            })
+    }
+
+    const customer = () => {
+        const myQuery1 = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
+    
+            pool.query(myQuery1, (err, result1) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    const token = create_token(result1.insertId, 'customer');
+                    res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                    res.json({'case':'success'});
+                }
+            })
+    }
+    
+
+    const myQuery = `SELECT otp_code FROM otp WHERE email = ${pool.escape(user.email)}ORDER BY created_at DESC LIMIT 1;`;
     pool.query(myQuery, (err, result) => {
-        if(err || result.length == 0){
+        if(err || result.length == 0 || result[0].otp_code != otp){
             res.json({'case':'wrong'});
         } else{
-            res.json({'case':'success'});
+            if(user.firstName) {
+                customer();
+            } else {
+                publisher();
+            }
         }
     })
 }
 
-const check_hash_password = async (password) => {
-    if(password.length >= 6){
-        const salt = await bcrypt.genSalt();
-        password = await bcrypt.hash(password, salt);
-        return password;
-    }
-    return 'wrong';
+const hash_password = async (password) => {
+    const salt = await bcrypt.genSalt();
+    password = await bcrypt.hash(password, salt);
+    return password;
 }
 
-const add_customer = (user, res) => {
+const add_user = (user, res) => {
     if(!validateEmail(user.email)){
         res.json({'errors': {'email': 'wrong email address'}});
         return;
     }
 
-    pool.beginTransaction((err) => {
-        if (err){
-            pool.rollback(() => {
-                throw err;
-            })
-        }
-        const testQuery = `select email from publishers where email = '${user.email}'`;
-        let errors = {'email':''};
-        pool.query(testQuery, (err, result1) => {
-            if (err){
-                pool.rollback(() => {
-                    throw err;
-                })
-            }
-            if(result1[0]) {
-                pool.rollback(() => {
-                    errors.email = 'Email address is already in use';
-                    res.json({'errors': errors});
-                })
-            } else {
-                const myQuery = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
-    
-                pool.query(myQuery, (err, result2) => {
-                    if(err){
-                        pool.rollback(() => {
-                            if(err.sqlMessage.includes('Duplicate')){
-                                errors.email = 'Email address is already in use';
-                            }
-                            res.json({'errors': errors});
-                        })
-                    } else {
-                        pool.commit((err) => {
-                            if (err) {
-                                pool.rollback(() => {
-                                    throw err;
-                                });
-                            }
-                            sendOtp(user.email, result2.insertId);
-                            const token = create_token(result2.insertId, 'customer');
-                            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                            res.json({'case':'otp'});
-                        });
-                    }
-                })
-            }
+    const rollback = (err) => {
+        pool.rollback(() => {
+            console.log(err);
         })
-    })
-}
-
-const add_publisher = (user, res) => {
-    if(!validateEmail(user.email)){
-        res.json({'errors': {'email': 'wrong email address'}});
-        return;
     }
 
+    let errors = {'email':'', 'password':'', 'creationYear':''};
     pool.beginTransaction((err) => {
-        if (err){
-            pool.rollback(() => {
-                throw err;
-            })
-        }
-        const testQuery = `select email from customers where email = '${user.email}'`;
-        let errors = {'email':'', 'password':'', 'creationYear': ''};
-        pool.query(testQuery, (err, result1) => {
-            if (err){
-                pool.rollback(() => {
-                    throw err;
-                })
-            }
-            if(result1[0]) {
-                pool.rollback(() => {
-                    errors.email = 'Email address is already in use';
-                    res.json({'errors': errors});
-                })
-            } else {
-                const myQuery = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
-    
-                pool.query(myQuery, (err, result2) => {
-                    if(err){
-                        pool.rollback(() => {
-                            if(err.sqlMessage.includes('Duplicate')){
+        if (err) {rollback(err);}
+        else {
+            //check not customer email
+            const myQuery1 = `select email from customers where email = ${pool.escape(user.email)}`
+            pool.query(myQuery1, (err, result) => {
+                if(err){rollback(err);}
+                if(result.length>0){
+                    pool.rollback(() => {
+                        errors.email = 'Email address is already in use';
+                        res.json({'errors': errors});
+                        return;
+                    })
+                } else {
+                    //check not publisher email
+                    const myQuery2 = `select email from publishers where email = ${pool.escape(user.email)}`
+                    pool.query(myQuery2, (err, result) => {
+                        if(err){rollback(err);}
+                        if(result.length>0){
+                            pool.rollback(() => {
                                 errors.email = 'Email address is already in use';
                                 res.json({'errors': errors});
-                            }
-                            if(err.sqlMessage.includes('Out of range')) {
-                                errors.creationYear = 'wrong year';
-                                res.json({'errors': errors});
-                            }
-                        })
-                    } else {
-                        pool.commit((err) => {
-                            if (err) {
-                                pool.rollback(() => {
-                                    throw err;
-                                });
-                            }
-                            sendOtp(user.email, result2.insertId);
-                            const token = create_token(result2.insertId, 'publisher');
-                            res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
-                            res.json({'case':'otp'});
-                        });
-                    }
-                })
-            }
-        })
+                                return;
+                            })
+                        } else {
+                            //send otp
+                            sendOtp(user.email);
+
+                            pool.commit((err) => {
+                                if (err) {rollback();}
+                                else {
+                                    res.json({'case':'otp'});
+                                    return;
+                                }
+                            });
+                        }
+                    })
+                }
+            })
+            
+        }
     })
 }
 
@@ -275,19 +256,12 @@ const post_signup = async (req, res) => {
         return;
     }
 
-    user.password = await check_hash_password(user.password);
-    
-    if(user.password == 'wrong'){
+    if (user.password.length < 6){
         res.json({'errors':{password: 'password must be at least 6 characters'}});
         return;
     }
     
-    if(user.firstName){
-        add_customer(user, res);
-    } else {
-        add_publisher(user, res);
-    }
-
+    add_user(user, res);
 }
 
 

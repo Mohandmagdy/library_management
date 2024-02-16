@@ -17,10 +17,11 @@ const show_book = (req, res) => {
 
     const myQuery = `SELECT b.isbn, b.title,  b.description,  b.pieces, p.name AS publisher_name, b.pages, b.publish_year, GROUP_CONCAT(DISTINCT CONCAT(a.firstName, ' ', a.lastName)) AS authors, GROUP_CONCAT(DISTINCT bc.category) AS categories
             FROM books AS b
-            INNER JOIN book_author AS ba ON b.isbn = ba.isbn and b.isbn = ${id}
+            INNER JOIN book_author AS ba ON b.isbn = ba.isbn
             INNER JOIN authors AS a ON ba.author_id = a.author_id
             INNER JOIN book_category AS bc ON b.isbn = bc.isbn 
             INNER JOIN publishers AS p ON b.publisher_id = p.publisher_id
+            where b.isbn = ${id}
             GROUP BY b.isbn, b.title, b.description, b.pieces, b.publisher_id, p.name, b.pages, b.publish_year;`
     pool.query(myQuery, (err, result) => {
         if(err){
@@ -172,7 +173,95 @@ const filter = (req, res) => {
     }
 }
 
+const published_books = (req, res) => {
+    const {id}= req.params;
 
+    const myQuery = `SELECT b.ISBN, b.title, b.description, b.pieces, b.pages, GROUP_CONCAT(DISTINCT concat(firstName, ' ', lastName)) AS authors, group_concat(Distinct bc.category) as categories
+            FROM books AS b
+            INNER JOIN book_author AS ba ON b.ISBN = ba.ISBN
+            INNER JOIN authors as a on a.author_id = ba.author_id
+            INNER JOIN book_category AS bc ON b.ISBN = bc.ISBN
+            INNER JOIN publishers as p ON p.publisher_id = b.publisher_id
+            where p.publisher_id = ${id}
+            GROUP BY b.ISBN;`
+    pool.query(myQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('books', {books: result, publisher:true});
+        }
+    })
+}
+
+const delete_book = (req, res) => {
+    const { isbn } = req.params;
+
+    pool.beginTransaction((err) => {
+        if (err) {
+            throw err;
+        }
+
+        const queries = [
+            `DELETE FROM book_author WHERE isbn = ${pool.escape(isbn)}`,
+            `DELETE FROM book_category WHERE isbn = ${pool.escape(isbn)}`,
+            `DELETE FROM books WHERE isbn = ${pool.escape(isbn)}`
+        ];
+
+        queries.forEach((query) => {
+            pool.query(query, (err, result) => {
+                if (err) {
+                    return pool.rollback(() => {
+                        throw err;
+                    });
+                }
+            });
+        });
+
+        pool.commit((err) => {
+            if (err) {
+                return pool.rollback(() => {
+                    throw err; 
+                });
+            }
+            res.redirect('/');
+        });
+    });
+};
+
+
+const edit_book_page = (req, res) => {
+    const {isbn} = req.params;
+
+    const myQuery = `SELECT b.isbn, b.title,  b.description,  b.pieces, b.pages, b.publish_year, GROUP_CONCAT(DISTINCT CONCAT(a.firstName, ' ', a.lastName)) AS authors, GROUP_CONCAT(DISTINCT bc.category) AS categories
+            FROM books AS b
+            INNER JOIN book_author AS ba ON b.isbn = ba.isbn
+            INNER JOIN authors AS a ON ba.author_id = a.author_id
+            INNER JOIN book_category AS bc ON b.isbn = bc.isbn 
+            where b.isbn = ${isbn}
+            GROUP BY b.isbn, b.title, b.description, b.pieces, b.pages, b.publish_year;`
+    pool.query(myQuery, (err, result) => {
+        if(err){
+            console.log(err);
+        } else {
+            res.render('edit', {book:result[0]});
+        }
+    })
+}
+
+const edit_book = (req, res) => {
+    const {isbn} = req.params;
+    const b = req.body;
+
+    const myQuery = 'update books set title = ?, description = ?, pieces = ?, pages = ?, publish_year = ? where isbn = ?';
+    const values = [b.title, b.description, b.pieces, b.pages, b.publish_year, isbn];
+    pool.query(myQuery, values, (err, result) => {
+        if (err) {
+            res.json({'error': ''});
+        } else {
+            res.json({'case':'success'});
+        }
+    })
+}
 
 
 
@@ -182,5 +271,9 @@ module.exports = {
     add_page,
     add_book,
     filter,
+    published_books,
+    delete_book,
+    edit_book_page,
+    edit_book,
 
 }

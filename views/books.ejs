@@ -63,7 +63,11 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;<%= book.categories.trim() %><br>
                 <% } %>
             </p>
-            <a href="/books/<%- book.isbn %>">View Details</a>
+            <a href="/books/<%- book.ISBN %>">View Details</a>
+            <% if (publisher) { %>
+                <a href="/books/edit/<%- book.ISBN %>">Edit Book</a>
+                <a href="/books/delete/<%- book.ISBN %>">Delete Book</a>
+            <% } %>
         </li>
     <% }); %>
 </ul>

@@ -18,7 +18,7 @@
                 <% } else { %>
                     <li> <p>Welcome <%- user.name %></p> </li>
                     <li> <a href="/books/add">Add a book</a> </li>
-                    <li> <a href="/books/published<%- user.publisher_id %>">Published books</a> </li>
+                    <li> <a href="/books/published/<%- user.publisher_id %>">Published books</a> </li>
                 <% } %>
             <% } else { %>
                 <li> <a href="/auth/login">Log in</a> </li>

@@ -1,0 +1,58 @@
+<%- include('./partials/header.ejs') %>
+
+<h2>Edit Book Details</h2>
+
+<li>
+    <form id="editBookForm" action="/books/edit/<%- book.isbn %>" method="post">
+        <h3>Edit Book Details</h3>
+
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="<%= book.title %>"><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description"><%= book.description %></textarea><br>
+
+        <label for="pieces">Remaining copies:</label>
+        <input type="number" id="pieces" name="pieces" value="<%= book.pieces %>"><br>
+
+        <label for="pages">Pages:</label>
+        <input type="number" id="pages" name="pages" value="<%= book.pages %>"><br>
+
+        <label for="publish_year">Publish Year:</label>
+        <input type="number" id="publish_year" name="publish_year" value="<%= book.publish_year %>"><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+</li>
+
+
+<script>
+    document.getElementById('editBookForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const url = this.action; 
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(Object.fromEntries(formData)),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await res.json(); 
+
+            if (data.case == 'success') {
+                alert('Book details updated successfully!');
+            } else {
+                alert('Failed to update book details. Please try again.');
+            }
+        } catch (error) {
+            console.log(error);
+            alert('An error occurred. Please try again later.');
+        }
+    });
+</script>
+
+<%- include('./partials/footer.ejs') %>

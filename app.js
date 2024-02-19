@@ -2,6 +2,7 @@ const express = require('express');
 const authRoutes = require('./routes/authRoutes');
 const booksRoutes = require('./routes/booksRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const pool = require('./database/connection');
 const cookieParser = require('cookie-parser');
@@ -25,5 +26,6 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/books', booksRoutes);
 app.use('/cart', cartRoutes);
+app.use('/order', orderRoutes);
 
 app.listen(3000);

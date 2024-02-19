@@ -1,6 +1,5 @@
 <%- include('./partials/header.ejs') %>
 
-<!-- Display each book in the cart -->
 <ul>
   <% books.forEach(book => { %>
     <li>
@@ -15,5 +14,7 @@
     </li>
   <% }); %>
 </ul>
+
+<a href="/order/add/<%= user.customer_id %>">Order</a>
 
 <%- include('./partials/footer.ejs') %>

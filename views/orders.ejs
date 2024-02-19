@@ -1,0 +1,24 @@
+<%- include('./partials/header.ejs') %>
+
+<h1>Orders</h1>
+    <ul>
+        <% let orderNumber = 1; %>
+        <% orders.forEach(order => { %>
+            <li>
+                <strong>Order <%= orderNumber %></strong>
+                <ul>
+                    <% var titles = order['group_concat(b.title)'].split(','); %>
+                    <% titles.forEach(title => { %>
+                        <li><%= title.trim() %></li>
+                    <% }); %>
+                </ul>
+                
+                <form action="/order/delete/<%= order.order_id %>" method="post">
+                    <button type="submit">Cancel Order</button>
+                </form>
+            </li>
+            <% orderNumber++; %>
+        <% }); %>
+    </ul>
+
+<%- include('./partials/footer.ejs') %>

@@ -74,9 +74,14 @@ const check_otp = async (req, res) => {
         res.json({'errors':{password: 'password must be at least 6 characters'}});
         return;
     }
+    console.log(req.file);
+    let filePath = null;
+    if(req.file){
+        filePath = req.file.path;
+    }
 
     const publisher = () => {
-        const myQuery1 = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
+        const myQuery1 = `insert into publishers (email, password, name, creation_year, picture_path) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear}, '${filePath}');`
     
             pool.query(myQuery1, (err, result1) => {
                 if (err) {
@@ -90,7 +95,7 @@ const check_otp = async (req, res) => {
     }
 
     const customer = () => {
-        const myQuery1 = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
+        const myQuery1 = `insert into customers (email, password, firstName, lastName, age, picture_path) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age}, '${filePath}');`
     
             pool.query(myQuery1, (err, result1) => {
                 if (err) {
@@ -189,43 +194,61 @@ const customer_login = (user, res) => {
         } else{
             if(!result[0]){
                 res.json({'error': 'invalid email or password'});
-            } else{
-                bcrypt.compare(user.password, result[0].password)
-                    .then(rs => {
+            } else {
+                const hashedPasswordFromDB = result[0].password;
+
+                bcrypt.compare(user.password, hashedPasswordFromDB, (compareErr, passwordMatch) => {
+                    if (compareErr) {
+                        console.error('Error comparing passwords:', compareErr);
+                        res.json({'error': 'An error occurred while processing your request'});
+                        return;
+                    }
+
+                    if (passwordMatch) {
                         const token = create_token(result[0].customer_id, 'customer');
                         res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
                         res.json({'user': result[0]});
-                    }).catch(err => {
-                        console.log(err);
-                    })
-                
+                    } else {
+                        res.json({'error': 'Invalid email or password'});
+                    }
+                });
             }
         }
     })
 }
 
 const publisher_login = (user, res) => {
-    const myQuery = `select * from publishers where email='${user.email}';`;
+    const myQuery = `SELECT * FROM publishers WHERE email='${user.email}';`;
     pool.query(myQuery, (err, result) => {
-        if(err){
-            console.log(err);
-        } else{
-            if(!result[0]){
-                res.json({'error': 'invalid email or password'});
-            } else{
-                bcrypt.compare(user.password, result[0].password)
-                    .then(rs => {
+        if (err) {
+            console.error(err);
+            res.json({'error': 'An error occurred while processing your request'});
+        } else {
+            if (!result[0]) {
+                res.json({'error': 'Invalid email or password'});
+            } else {
+                const hashedPasswordFromDB = result[0].password;
+
+                bcrypt.compare(user.password, hashedPasswordFromDB, (compareErr, passwordMatch) => {
+                    if (compareErr) {
+                        console.error('Error comparing passwords:', compareErr);
+                        res.json({'error': 'An error occurred while processing your request'});
+                        return;
+                    }
+
+                    if (passwordMatch) {
                         const token = create_token(result[0].publisher_id, 'publisher');
-                        res.cookie('jwt', token, {maxAge:maxAge*1000, httpOnly:true});
+                        res.cookie('jwt', token, {maxAge: maxAge * 1000, httpOnly: true});
                         res.json({'user': result[0]});
-                    }).catch(err => {
-                        console.log(err);
-                    })
-                
+                    } else {
+                        res.json({'error': 'Invalid email or password'});
+                    }
+                });
             }
         }
-    })
-}
+    });
+};
+
 
 const get_login = (req, res) => {
     res.render('login');

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/authController');
+const upload = require('../middleware/multerMiddleware');
 
 
 router.get('/login', controller.get_login);

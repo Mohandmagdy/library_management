@@ -1,6 +1,11 @@
 <%- include('./partials/header.ejs') %>
 
-<form id="signupForm">
+<form id="signupForm" enctype="multipart/form-data">
+    <label for="picture">Profile Picture</label>
+    <input type="file" name="picture" accept="image/*" onchange="previewImage(event)" />
+
+    <div id="imagePreview"></div>
+
     <label for="email">Email address</label>
     <input type="text" name="email" required />
     <div class="email error"></div>
@@ -42,6 +47,17 @@
         }
     });
 
+    function previewImage(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function() {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = `<img src="${reader.result}" alt="Preview" style="max-width: 200px; max-height: 200px;" />`;
+        }
+
+        reader.readAsDataURL(file);
+    }
 
     signupForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -88,7 +104,7 @@
                 method: 'POST',
                 body: JSON.stringify({
                     otp: otpInput,
-                    user: formData
+                    user: formData,
                 }),
                 headers: { 'Content-Type': 'application/json' }
             });

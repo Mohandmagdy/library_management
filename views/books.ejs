@@ -2,6 +2,11 @@
 
 <h2>List of Books</h2>
 
+<form action="/books/search" method="post">
+    <input type="text" name="text">
+    <button type="submit">Search</button>
+</form>
+
 <!-- Filtering options -->
 <form action="/books/filter/category" method="post">
     <label for="filterCategory">Filter by Category:</label>
@@ -63,10 +68,10 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;<%= book.categories.trim() %><br>
                 <% } %>
             </p>
-            <a href="/books/<%- book.ISBN %>">View Details</a>
-            <% if (publisher) { %>
-                <a href="/books/edit/<%- book.ISBN %>">Edit Book</a>
-                <a href="/books/delete/<%- book.ISBN %>">Delete Book</a>
+            <a href="/books/<%- book.isbn %>">View Details</a>
+            <% if (user.name) { %>
+                <a href="/books/edit/<%- book.isbn %>">Edit Book</a>
+                <a href="/books/delete/<%- book.isbn %>">Delete Book</a>
             <% } %>
         </li>
     <% }); %>

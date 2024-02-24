@@ -1,8 +1,8 @@
 <%- include('./partials/header.ejs') %>
 
-<form id="signupForm">
+<form id="signupForm" enctype="multipart/form-data">
     <label for="picture">Profile Picture</label>
-    <input type="file" name="picture" accept="image/*" onchange="previewImage(event)" />
+    <input type="file" id="imageInput" name="photo" accept="image/*" onchange="previewImage(event)" />
 
     <div id="imagePreview"></div>
 
@@ -60,13 +60,14 @@
         otpError.style.display = 'none';
 
         const formData = new FormData(signupForm);
+        const imageFile = document.getElementById('imageInput').files[0];
         const values = Object.fromEntries(formData.entries());
 
         try {
             const response = await fetch('/auth/signup', {
                 method: 'POST',
                 body: JSON.stringify(values),
-                headers: { 'Content-Type': 'application/json' }
+                headers: {'Content-Type': 'application/json'}
             });
             const data = await response.json();
 

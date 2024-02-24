@@ -1,0 +1,22 @@
+<%- include('./partials/header.ejs') %>
+
+<form action="/profile/edit/<%= myUser.customer_id %>" method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" value="<%= myUser.email %>" readonly><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" value="<%= myUser.password %>"><br>
+
+    <label>First Name:</label>
+    <input type="text" name="firstName" value="<%= myUser.firstName %>"><br>
+
+    <label>Last Name:</label>
+    <input type="text" name="lastName" value="<%= myUser.lastName %>"><br>
+
+    <label>Age:</label>
+    <input type="number" name="age" value="<%= myUser.age %>"><br>
+
+    <button type="submit">Save Changes</button>
+</form>
+
+<%- include('./partials/footer.ejs') %>

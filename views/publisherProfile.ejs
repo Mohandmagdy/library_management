@@ -1,0 +1,19 @@
+<%- include('./partials/header.ejs') %>
+
+<form action="/profile/edit/<%= myUser.publisher_id %>" method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" value="<%= myUser.email %>" readonly><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" value="<%= myUser.password %>"><br>
+
+    <label>Name:</label>
+    <input type="text" name="name" value="<%= myUser.name %>"><br>
+
+    <label>Creation year:</label>
+    <input type="number" name="creation_year" value="<%= myUser.creation_year %>"><br>
+
+    <button type="submit">Save Changes</button>
+</form>
+
+<%- include('./partials/footer.ejs') %>

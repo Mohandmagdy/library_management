@@ -3,6 +3,7 @@ const authRoutes = require('./routes/authRoutes');
 const booksRoutes = require('./routes/booksRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const profileRoutes = require('./routes/profileRoutes')
 const authMiddleware = require('./middleware/authMiddleware');
 const pool = require('./database/connection');
 const cookieParser = require('cookie-parser');
@@ -27,5 +28,6 @@ app.use('/auth', authRoutes);
 app.use('/books', booksRoutes);
 app.use('/cart', cartRoutes);
 app.use('/order', orderRoutes);
+app.use('/profile', profileRoutes);
 
 app.listen(3000);

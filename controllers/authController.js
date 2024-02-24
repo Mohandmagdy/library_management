@@ -74,14 +74,10 @@ const check_otp = async (req, res) => {
         res.json({'errors':{password: 'password must be at least 6 characters'}});
         return;
     }
-    console.log(req.file);
-    let filePath = null;
-    if(req.file){
-        filePath = req.file.path;
-    }
+    
 
     const publisher = () => {
-        const myQuery1 = `insert into publishers (email, password, name, creation_year, picture_path) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear}, '${filePath}');`
+        const myQuery1 = `insert into publishers (email, password, name, creation_year) values('${user.email}', '${user.password}', '${user.name}', ${user.creationYear});`
     
             pool.query(myQuery1, (err, result1) => {
                 if (err) {
@@ -95,7 +91,7 @@ const check_otp = async (req, res) => {
     }
 
     const customer = () => {
-        const myQuery1 = `insert into customers (email, password, firstName, lastName, age, picture_path) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age}, '${filePath}');`
+        const myQuery1 = `insert into customers (email, password, firstName, lastName, age) values('${user.email}', '${user.password}', '${user.firstName}', '${user.lastName}', ${user.age});`
     
             pool.query(myQuery1, (err, result1) => {
                 if (err) {
@@ -274,6 +270,16 @@ const post_login = (req, res) => {
 
 const post_signup = async (req, res) => {
     let user = req.body;
+
+    let filePath = null;
+    if(req.file){
+        filePath = req.file.path;
+        console.log(filePath);
+    } else if (!req.file) {
+        console.log('zena');
+    }
+
+
     if(!validateEmail) {
         res.json({'errors':{email: 'Wrong email address'}});
         return;
@@ -303,5 +309,6 @@ module.exports = {
     post_signup,
     logout,
     check_otp,
+    hash_password,
 
 }
